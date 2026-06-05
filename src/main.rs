@@ -10,7 +10,6 @@ use std::{
     fs::{self, OpenOptions},
     io::Write,
     path::PathBuf,
-    sync::Arc,
 };
 
 #[derive(Clone)]
