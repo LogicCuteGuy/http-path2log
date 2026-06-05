@@ -33,27 +33,31 @@ async fn main() {
 
     let addr = "0.0.0.0:8080";
     println!("🚀 Server running on http://{addr}");
-    println!("   GET /log/{{info,warn,error,debug,custom}}/{{msg}}");
+    println!("   GET /log/{{topic}}/{{msg}}");
+    println!("   Topics: any name (e.g. info, error, MyProject, deploy-status)");
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
 
 async fn index() -> &'static str {
-    "http-path2log server\n\nUsage: GET /log/{level}/{msg}\nLevels: info, warn, error, debug, custom\n"
+    "http-path2log server\n\nUsage: GET /log/{topic}/{msg}\n\nAny topic name is valid — it becomes the log filename.\nExamples:\n  /log/info/Hello World\n  /log/deploy/Production deploy succeeded\n  /log/MyProject/Something happened\n\nFiles are created under logs/{date}/{topic}.log\n"
 }
 
 async fn handle_log(
     Path((level, msg)): Path<(String, String)>,
     State(state): State<AppState>,
 ) -> impl IntoResponse {
-    let valid_levels = ["info", "warn", "error", "debug", "custom"];
-    let level = level.to_lowercase();
+    let level: String = level
+        .chars()
+        .filter(|c| c.is_alphanumeric() || *c == '-' || *c == '_')
+        .collect::<String>()
+        .to_lowercase();
 
-    if !valid_levels.contains(&level.as_str()) {
+    if level.is_empty() {
         return (
             StatusCode::BAD_REQUEST,
-            format!("Invalid level '{}'. Use: info, warn, error, debug, custom", level),
+            "Level/topic name cannot be empty".to_string(),
         );
     }
 
