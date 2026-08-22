@@ -23,21 +23,27 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
             use_cross: false
+            artifact_name: http-path2log-x86_64-linux
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
             use_cross: true
+            artifact_name: http-path2log-aarch64-linux
           - target: x86_64-pc-windows-msvc
             os: windows-latest
             use_cross: false
+            artifact_name: http-path2log-x86_64-windows.exe
           - target: aarch64-pc-windows-msvc
             os: windows-latest
             use_cross: false
+            artifact_name: http-path2log-aarch64-windows.exe
           - target: x86_64-apple-darwin
             os: macos-latest
             use_cross: false
+            artifact_name: http-path2log-x86_64-darwin
           - target: aarch64-apple-darwin
             os: macos-latest
             use_cross: false
+            artifact_name: http-path2log-aarch64-darwin
 
     steps:
       - uses: actions/checkout@v4
@@ -71,11 +77,21 @@ jobs:
             cargo build --release --target ${{ matrix.target }}
           fi
 
+      - name: Rename binary
+        shell: bash
+        run: |
+          cd target/${{ matrix.target }}/release
+          src="${{ env.BIN_NAME }}"
+          if [[ "${{ matrix.target }}" == *windows* ]]; then
+            src="${src}.exe"
+          fi
+          mv "$src" "${{ matrix.artifact_name }}"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.BIN_NAME }}-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/${{ env.BIN_NAME }}*
+          path: target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
 
   release:
     name: Create GitHub Release
