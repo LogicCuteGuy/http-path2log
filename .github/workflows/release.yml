@@ -106,6 +106,19 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      - name: Clean up artifacts (keep only renamed binaries)
+        working-directory: artifacts
+        shell: bash
+        run: |
+          for f in *; do
+            case "$f" in
+              *linux*|*windows*|*darwin*) ;;
+              *) rm -f "$f" ;;
+            esac
+          done
+          echo "Release files:"
+          ls -1
+
       - name: Generate checksums
         working-directory: artifacts
         run: |
