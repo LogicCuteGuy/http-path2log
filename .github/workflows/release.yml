@@ -25,7 +25,7 @@ jobs:
             archive: tar.gz
           - target: x86_64-pc-windows-msvc
             os: windows-latest
-            archive: zip
+            archive: tar.gz
           - target: x86_64-apple-darwin
             os: macos-latest
             archive: tar.gz
@@ -57,16 +57,10 @@ jobs:
 
       - name: Package (unix)
         if: matrix.archive == 'tar.gz'
+        shell: bash
         run: |
           cd target/${{ matrix.target }}/release
-          tar czf ../../../${{ env.BIN_NAME }}-${{ github.ref_name }}-${{ matrix.target }}.tar.gz ${{ env.BIN_NAME }}
-
-      - name: Package (windows)
-        if: matrix.archive == 'zip'
-        shell: pwsh
-        run: |
-          Compress-Archive -Path "target/${{ matrix.target }}/release/${{ env.BIN_NAME }}.exe" `
-            -DestinationPath "${{ env.BIN_NAME }}-${{ github.ref_name }}-${{ matrix.target }}.zip"
+          tar czf ../../../${{ env.BIN_NAME }}-${{ github.ref_name }}-${{ matrix.target }}.tar.gz ${{ env.BIN_NAME }}*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
